@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  secondmeUserId String   @unique @map("secondme_user_id")
+  name           String?
+  avatar         String?
+  accessToken    String   @map("access_token")
+  refreshToken   String   @map("refresh_token")
+  tokenExpiresAt DateTime @map("token_expires_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  rooms       RoomMember[]
+  chatMessages ChatMessage[]
+  notes       Note[]
+
+  @@map("users")
+}
+
+model Script {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  sourceEvent String?  @map("source_event")
+  scriptType  String   @map("script_type")
+  difficulty  Int      @default(1)
+  duration    Int      @default(30)
+  background  String?
+  roles       String
+  scenes      String
+  endings     String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  rooms Room[]
+
+  @@map("scripts")
+}
+
+model Room {
+  id        String    @id @default(cuid())
+  scriptId  String    @map("script_id")
+  status    String    @default("waiting")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  endedAt   DateTime? @map("ended_at")
+
+  script   Script       @relation(fields: [scriptId], references: [id])
+  members  RoomMember[]
+  messages ChatMessage[]
+
+  @@map("rooms")
+}
+
+model RoomMember {
+  id       String    @id @default(cuid())
+  roomId   String    @map("room_id")
+  userId   String    @map("user_id")
+  roleId   String?   @map("role_id")
+  roleName String?   @map("role_name")
+  isReady  Boolean   @default(false) @map("is_ready")
+  isDemo   Boolean   @default(false) @map("is_demo")
+  joinedAt DateTime  @default(now()) @map("joined_at")
+  leftAt   DateTime? @map("left_at")
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@map("room_members")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  roomId    String   @map("room_id")
+  userId    String   @map("user_id")
+  roleName  String?  @map("role_name")
+  content   String
+  type      String   @default("text")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  content   String
+  scriptId  String?  @map("script_id")
+  roomId    String?  @map("room_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
+}

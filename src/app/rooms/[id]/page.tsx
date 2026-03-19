@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import Modal from '@/components/Modal';
 import { Room, Script, Role } from '@/types';
 
 interface MessageWithUser {
@@ -27,6 +28,7 @@ export default function RoomPage() {
   const [messages, setMessages] = useState<MessageWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [modal, setModal] = useState({ show: false, title: '', message: '', icon: '🎭' });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -87,7 +89,7 @@ export default function RoomPage() {
     // 检查角色是否已被选择
     const isTaken = room?.members?.some((m: any) => m.roleId === roleId && !m.isDemo);
     if (isTaken) {
-      alert('该角色已被其他玩家选择');
+      setModal({ show: true, title: '角色已被选择', message: '该角色已被其他玩家选择', icon: '⚠️' });
       return;
     }
 
@@ -102,18 +104,18 @@ export default function RoomPage() {
         setSelectedRole(roleId);
         fetchRoom();
       } else {
-        alert(data.message || '选择角色失败');
+        setModal({ show: true, title: '选择失败', message: data.message || '选择角色失败', icon: '❌' });
       }
     } catch (error) {
       console.error('Error selecting role:', error);
-      alert('选择角色失败');
+      setModal({ show: true, title: '选择失败', message: '选择角色失败', icon: '❌' });
     }
   };
 
   const handleFillDemoBots = async () => {
     // 前端检查：确保真人已选择角色
     if (!hasSelectedRole) {
-      alert('请先选择角色，再填充 AI 玩家');
+      setModal({ show: true, title: '请先选择角色', message: '请先选择角色，再填充 AI 玩家', icon: '⚠️' });
       return;
     }
 
@@ -123,14 +125,14 @@ export default function RoomPage() {
       });
       const data = await res.json();
       if (data.code === 0) {
-        alert(data.data.message);
+        setModal({ show: true, title: '填充成功', message: data.data.message, icon: '✅' });
         fetchRoom();
       } else {
-        alert(data.message || '填充失败');
+        setModal({ show: true, title: '填充失败', message: data.message || '填充失败', icon: '❌' });
       }
     } catch (error) {
       console.error('Error filling demo bots:', error);
-      alert('填充 DEMO 机器人失败');
+      setModal({ show: true, title: '填充失败', message: '填充 DEMO 机器人失败', icon: '❌' });
     }
   };
 
@@ -138,14 +140,14 @@ export default function RoomPage() {
     // 检查是否有真实玩家
     const realPlayers = room?.members?.filter((m: any) => !m.isDemo);
     if (!realPlayers || realPlayers.length === 0) {
-      alert('房间需要至少一名真实玩家才能启动');
+      setModal({ show: true, title: '无法启动', message: '房间需要至少一名真实玩家才能启动', icon: '⚠️' });
       return;
     }
 
     // 检查真实玩家是否都选择了角色
     const unselectedRealPlayers = realPlayers.filter((m: any) => !m.roleId);
     if (unselectedRealPlayers.length > 0) {
-      alert('所有真实玩家都需要选择一个角色才能开始游戏');
+      setModal({ show: true, title: '无法启动', message: '所有真实玩家都需要选择一个角色才能开始游戏', icon: '⚠️' });
       return;
     }
 
@@ -155,14 +157,14 @@ export default function RoomPage() {
       });
       const data = await res.json();
       if (data.code === 0) {
-        alert('游戏已启动！AI 角色开始自动对话');
+        setModal({ show: true, title: '游戏已启动', message: 'AI 角色开始自动对话', icon: '🎬' });
         fetchRoom();
       } else {
-        alert(data.message || '启动失败');
+        setModal({ show: true, title: '启动失败', message: data.message || '启动失败', icon: '❌' });
       }
     } catch (error) {
       console.error('Error starting game:', error);
-      alert('启动游戏失败');
+      setModal({ show: true, title: '启动失败', message: '启动游戏失败', icon: '❌' });
     }
   };
 
@@ -173,7 +175,7 @@ export default function RoomPage() {
       });
       const data = await res.json();
       if (data.code === 0) {
-        alert('游戏已结束');
+        setModal({ show: true, title: '游戏已结束', message: '感谢参与本次剧本演绎', icon: '🎭' });
         fetchRoom();
       }
     } catch (error) {
@@ -423,6 +425,13 @@ export default function RoomPage() {
           </div>
         </div>
       </div>
+      <Modal
+        show={modal.show}
+        onClose={() => setModal({ ...modal, show: false })}
+        title={modal.title}
+        message={modal.message}
+        icon={modal.icon}
+      />
     </div>
   );
 }

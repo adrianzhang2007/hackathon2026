@@ -1,0 +1,20 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "env": {
+    "SECONDME_CLIENT_ID": "@secondme_client_id",
+    "SECONDME_CLIENT_SECRET": "@secondme_client_secret",
+    "SECONDME_REDIRECT_URI": "@secondme_redirect_uri",
+    "DATABASE_URL": "@database_url",
+    "SECONDME_API_BASE_URL": "https://api.mindverse.com/gate/lab",
+    "SECONDME_OAUTH_URL": "https://second-me.cn/oauth",
+    "SECONDME_TOKEN_ENDPOINT": "https://api.mindverse.com/gate/lab/api/oauth/token/code",
+    "SECONDME_REFRESH_ENDPOINT": "https://api.mindverse.com/gate/lab/api/oauth/token/refresh",
+    "SECONDME_USER_PROFILE_ENDPOINT": "https://api.mindverse.com/gate/lab/api/secondme/user/info",
+    "KIMI_API_ENDPOINT": "https://api.kimi.com/coding/v1/messages",
+    "KIMI_API_KEY": "@kimi_api_key",
+    "NEXT_PUBLIC_APP_NAME": "人间观察站"
+  }
+}

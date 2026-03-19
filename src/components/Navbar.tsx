@@ -70,6 +70,9 @@ export default function Navbar() {
 
           {/* Navigation */}
           <div className="flex items-center space-x-8">
+            <Link href="/hot" className="text-[#5c5650] hover:text-[#2c2824] transition-colors">
+              热榜
+            </Link>
             <Link href="/scripts" className="text-[#5c5650] hover:text-[#2c2824] transition-colors">
               剧本工坊
             </Link>

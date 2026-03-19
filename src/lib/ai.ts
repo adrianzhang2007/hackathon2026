@@ -125,74 +125,120 @@ export function buildRoleSystemPrompt(
   currentRound: number = 0,
   maxRounds: number = 20
 ): string {
-  // 计算剧情进度
   const progress = Math.min(100, Math.round((currentRound / maxRounds) * 100));
   const remainingRounds = maxRounds - currentRound;
 
-  // 根据进度确定当前阶段
   let stage = '开场';
-  if (progress > 25) stage = '发展';
-  if (progress > 60) stage = '高潮';
-  if (progress > 85) stage = '结局临近';
+  let stageGuide = '介绍自己的立场，点出矛盾';
+  if (progress > 25) {
+    stage = '发展';
+    stageGuide = '深挖冲突，揭露细节';
+  }
+  if (progress > 60) {
+    stage = '高潮';
+    stageGuide = '矛盾爆发，情绪激烈';
+  }
+  if (progress > 85) {
+    stage = '收尾';
+    stageGuide = '做出决定，走向结局';
+  }
 
-  return `【角色扮演模式 - 严格控制剧情进度】
-
-⚠️ 重要提醒：
-- 当前是第 ${currentRound}/${maxRounds} 轮（${progress}% 进度，${stage}阶段）
-- 剩余 ${remainingRounds} 轮必须完成剧本核心剧情
-- 你的发言必须推动剧情向结局发展，不能闲聊或重复
-
-=== 角色信息 ===
-姓名：${role.name}
-年龄：${role.age}
-职业：${role.occupation}
-性格：${role.personality?.join('、') || '未设定'}
-核心目标：${role.coreGoal}
+  return `你是${role.name}，${role.age}岁，${role.occupation}。
+性格：${role.personality?.join('、')}
+目标：${role.coreGoal}
 秘密：${role.secret}
-当前状态：${role.initialState}
 
-=== 剧本信息 ===
-剧本名称：${script.title}
-当前场景：${scene?.name || '未知'}
-地点：${scene?.location || '未知'}
-情感基调：${scene?.mood || '中性'}
-场景描述：${scene?.description || '无'}
+【当前剧情】
+进度：第${currentRound}/${maxRounds}轮（${stage}阶段）
+场景：${scene?.name} - ${scene?.location}
+氛围：${scene?.mood}
 
-=== 近期对话（最近3条）===
-${recentMessages.slice(-3).map((m: any) => {
-  const roleName = m.roleName || m.user?.name || '未知';
-  return `${roleName}：${m.content.slice(0, 50)}${m.content.length > 50 ? '...' : ''}`;
-}).join('\n')}
+【最近对话】
+${recentMessages.slice(-3).map((m: any) => `${m.roleName || '旁白'}：${m.content}`).join('\n')}
 
-=== 剧情控制规则（必须遵守）===
-1. 【进度控制】当前${stage}阶段，必须在${remainingRounds}轮内推进到结局
-2. 【内容要求】
-   - 开场阶段(1-5轮)：建立冲突，介绍背景
-   - 发展阶段(6-12轮)：深化矛盾，角色互动
-   - 高潮阶段(13-17轮)：冲突爆发，关键决策
-   - 结局阶段(18-20轮)：收束剧情，达成结局
-3. 【禁止行为】
-   - ❌ 闲聊、问候、客套话
-   - ❌ 重复之前说过的话
-   - ❌ 偏离剧本主题的内容
-   - ❌ 不推动剧情的无意义发言
-4. 【强制要求】
-   - ✅ 每次发言必须推进剧情
-   - ✅ 回应其他角色的核心观点
-   - ✅ 展现你的角色目标和秘密
-   - ✅ 为结局做铺垫（特别是15轮后）
+【发言规则】
+1. 用短句，一句话10-15字
+2. 多用动作和表情：（皱眉）（拍桌子）（冷笑）
+3. 加旁白渲染气氛：[空气凝固了][他的手在颤抖]
+4. ${stageGuide}
+5. 总长度30-60字
 
-=== 发言格式 ===
-- 台词：「说：...」
-- 动作：（...）
-- 内心独白：（心想：...）
+【当前任务】
+${stage}阶段，还剩${remainingRounds}轮。${stageGuide}。
+直接生成你的台词，不要解释：`;
+}
 
-=== 当前任务 ===
-作为${role.name}，在${stage}阶段，你的发言必须：
-1. 符合${stage}阶段的剧情节奏
-2. 推动故事向结局发展
-3. 控制在50-100字以内
-4. 不要解释，直接生成台词
+export async function analyzeZhihuTopic(title: string, body: string): Promise<any> {
+  const prompt = `分析这个知乎热榜话题是否适合改编成剧本杀：
 
-请生成你的回应：`;
+标题：${title}
+内容：${body.slice(0, 500)}
+
+要求：
+1. 是否有明确的冲突或争议？
+2. 是否涉及多方立场？
+3. 是否有戏剧性？
+
+输出 JSON：
+{
+  "suitable": true/false,
+  "reason": "原因",
+  "conflicts": ["冲突点1", "冲突点2"],
+  "suggestedRoles": ["角色1", "角色2", "角色3"]
+}`;
+
+  console.log('[analyzeZhihuTopic] Starting analysis...');
+  const result = await callKimiAPI('你是剧本分析专家', [{ role: 'user', content: prompt }], 1000);
+  console.log('[analyzeZhihuTopic] Result:', result?.slice(0, 100));
+
+  if (!result) {
+    console.error('[analyzeZhihuTopic] No result from Kimi API');
+    return null;
+  }
+
+  try {
+    // 清理 markdown 格式
+    const cleaned = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch (e) {
+    console.error('[analyzeZhihuTopic] JSON parse error:', e);
+    return null;
+  }
+}
+
+export async function generateScript(title: string, body: string, answers: any[]): Promise<any> {
+  const prompt = `将这个真实事件改编成剧本杀：
+
+标题：${title}
+内容：${body.slice(0, 1000)}
+热门回答：${answers.slice(0, 3).map((a: any) => a.body?.slice(0, 200)).join('\n\n')}
+
+要求：
+1. 5个角色，每个有目标和秘密
+2. 5个场景，逐步推进剧情
+3. 4个不同结局
+4. 保持真实事件的核心冲突
+
+输出严格 JSON 格式：
+{
+  "title": "剧本标题",
+  "description": "剧本简介",
+  "scriptType": "社会/商业/情感",
+  "difficulty": 3,
+  "duration": 30,
+  "background": {"time": "时间", "location": "地点", "socialContext": "背景"},
+  "roles": [{"name": "角色名", "age": 30, "occupation": "职业", "personality": ["性格1"], "coreGoal": "目标", "secret": "秘密", "initialState": "初始状态"}],
+  "scenes": [{"name": "场景名", "location": "地点", "description": "描述", "mood": "氛围", "keyEvents": ["事件1"]}],
+  "endings": [{"name": "结局名", "description": "描述", "condition": "触发条件", "impact": "影响"}]
+}`;
+
+  const result = await callKimiAPI('你是剧本创作专家', [{ role: 'user', content: prompt }], 4000);
+  if (!result) return null;
+
+  try {
+    const cleaned = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
 }

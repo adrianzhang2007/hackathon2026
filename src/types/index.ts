@@ -31,6 +31,7 @@ export interface Script {
   roles: Role[];
   scenes: Scene[];
   endings: Ending[];
+  coverImage?: string;
 }
 
 export interface ScriptBackground {

@@ -14,6 +14,7 @@ function CreateRoomForm() {
   const [selectedScript, setSelectedScript] = useState<Script | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     fetchScripts();
@@ -58,9 +59,14 @@ function CreateRoomForm() {
       const data = await res.json();
       if (data.code === 0) {
         router.push(`/rooms/${data.data.id}`);
+      } else if (data.code === 401) {
+        setShowLoginModal(true);
+      } else {
+        alert('创建失败：' + (data.message || '未知错误'));
       }
     } catch (error) {
       console.error('Error creating room:', error);
+      alert('创建失败，请稍后重试');
     } finally {
       setCreating(false);
     }
@@ -166,6 +172,33 @@ function CreateRoomForm() {
           {creating ? '创建中...' : '创建房间'}
         </button>
       </div>
+
+      {/* 登录提示弹窗 */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowLoginModal(false)}>
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="text-6xl mb-4">🎭</div>
+              <h3 className="font-serif text-2xl font-semibold text-[#2c2824] mb-3">嘿，先登录一下吧</h3>
+              <p className="text-[#5c5650] mb-6">登录后就能开启你的剧本之旅啦～</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLoginModal(false)}
+                  className="flex-1 px-6 py-3 border border-[#e8e4df] text-[#5c5650] rounded-lg hover:bg-[#faf8f5] transition-colors"
+                >
+                  再看看
+                </button>
+                <button
+                  onClick={() => window.location.href = '/api/auth/login'}
+                  className="flex-1 px-6 py-3 bg-[#2c2824] text-[#faf8f5] rounded-lg hover:bg-[#3d3833] transition-colors"
+                >
+                  去登录
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

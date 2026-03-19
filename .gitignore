@@ -19,10 +19,12 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
@@ -30,8 +32,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (包含敏感信息，不要上传)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
 
 # vercel
 .vercel
@@ -48,13 +55,37 @@ next-env.d.ts
 # IDE
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
 
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+prisma/migrations/*/migration_lock.toml
 
 # Logs
 *.log
+logs/
 
 # Local development
 .claude/
+
+# OS files
+*.tmp
+*.temp
+.cache/
+
+# 压缩包
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# 上传的文件
+uploads/
+public/uploads/
+
+# 备份文件
+*.bak
+*.backup

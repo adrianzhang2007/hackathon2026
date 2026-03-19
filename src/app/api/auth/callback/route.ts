@@ -19,12 +19,14 @@ export async function GET(request: NextRequest) {
   // 处理错误
   if (error) {
     console.error('OAuth error:', error);
-    return NextResponse.redirect(new URL('/?error=oauth_denied', request.url));
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackathon.marscn.com';
+    return NextResponse.redirect(new URL('/?error=oauth_denied', baseUrl));
   }
 
   // 验证参数
   if (!code) {
-    return NextResponse.redirect(new URL('/?error=no_code', request.url));
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackathon.marscn.com';
+    return NextResponse.redirect(new URL('/?error=no_code', baseUrl));
   }
 
   // 验证 state（宽松的验证，支持 WebView 场景）
@@ -36,13 +38,15 @@ export async function GET(request: NextRequest) {
   // 交换 code 获取 token
   const tokenData = await exchangeCodeForToken(code);
   if (!tokenData) {
-    return NextResponse.redirect(new URL('/?error=token_exchange_failed', request.url));
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackathon.marscn.com';
+    return NextResponse.redirect(new URL('/?error=token_exchange_failed', baseUrl));
   }
 
   // 获取用户信息
   const userInfo = await getUserInfo(tokenData.access_token);
   if (!userInfo) {
-    return NextResponse.redirect(new URL('/?error=get_user_info_failed', request.url));
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackathon.marscn.com';
+    return NextResponse.redirect(new URL('/?error=get_user_info_failed', baseUrl));
   }
 
   console.log('Callback: userInfo =', JSON.stringify(userInfo));
@@ -50,7 +54,8 @@ export async function GET(request: NextRequest) {
   // 检查用户ID是否有效
   if (!userInfo.id) {
     console.error('Callback: userInfo.id is missing!');
-    return NextResponse.redirect(new URL('/?error=invalid_user_id', request.url));
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackathon.marscn.com';
+    return NextResponse.redirect(new URL('/?error=invalid_user_id', baseUrl));
   }
 
   // 保存或更新用户到数据库
@@ -81,5 +86,6 @@ export async function GET(request: NextRequest) {
   console.log('Callback: Cookie set, redirecting to home');
 
   // 重定向到首页
-  return NextResponse.redirect(new URL('/', request.url));
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://hackathon.spacecn.xyz';
+  return NextResponse.redirect(new URL('/', baseUrl));
 }

@@ -61,17 +61,21 @@ export default function ScriptsPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {scripts.map((script) => (
-              <div key={script.id} className="bg-white rounded-xl p-6 border border-[#e8e4df] hover:shadow-lg transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="px-3 py-1 bg-[#f0ece6] text-[#5c5650] text-sm rounded-full">
-                    {script.scriptType}
-                  </span>
-                  <span className="text-sm">{getDifficultyStars(script.difficulty)}</span>
-                </div>
+              <div key={script.id} className="bg-white rounded-xl overflow-hidden border border-[#e8e4df] hover:shadow-lg transition-shadow">
+                {script.coverImage && (
+                  <img src={script.coverImage} alt={script.title} className="w-full h-48 object-cover" />
+                )}
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <span className="px-3 py-1 bg-[#f0ece6] text-[#5c5650] text-sm rounded-full">
+                      {script.scriptType}
+                    </span>
+                    <span className="text-sm">{getDifficultyStars(script.difficulty)}</span>
+                  </div>
 
-                <h3 className="font-serif text-xl font-semibold text-[#2c2824] mb-2">
-                  {script.title}
-                </h3>
+                  <h3 className="font-serif text-xl font-semibold text-[#2c2824] mb-2">
+                    {script.title}
+                  </h3>
 
                 <p className="text-[#5c5650] text-sm mb-4 line-clamp-2">
                   {script.description}
@@ -88,12 +92,13 @@ export default function ScriptsPage() {
                   </p>
                 )}
 
-                <Link
-                  href={`/rooms/create?scriptId=${script.id}`}
-                  className="block w-full text-center px-4 py-3 bg-[#2c2824] text-[#faf8f5] rounded-lg hover:bg-[#3d3833] transition-colors"
-                >
-                  创建房间
-                </Link>
+                  <Link
+                    href={`/rooms/create?scriptId=${script.id}`}
+                    className="block w-full text-center px-4 py-3 bg-[#2c2824] text-[#faf8f5] rounded-lg hover:bg-[#3d3833] transition-colors"
+                  >
+                    创建房间
+                  </Link>
+                </div>
               </div>
             ))}
           </div>

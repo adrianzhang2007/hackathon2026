@@ -8,19 +8,18 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  secondmeUserId String   @unique @map("secondme_user_id")
+  id             String        @id @default(cuid())
+  secondmeUserId String        @unique @map("secondme_user_id")
   name           String?
   avatar         String?
-  accessToken    String   @map("access_token")
-  refreshToken   String   @map("refresh_token")
-  tokenExpiresAt DateTime @map("token_expires_at")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  rooms       RoomMember[]
-  chatMessages ChatMessage[]
-  notes       Note[]
+  accessToken    String        @map("access_token")
+  refreshToken   String        @map("refresh_token")
+  tokenExpiresAt DateTime      @map("token_expires_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  chatMessages   ChatMessage[]
+  notes          Note[]
+  rooms          RoomMember[]
 
   @@map("users")
 }
@@ -37,25 +36,24 @@ model Script {
   roles       String
   scenes      String
   endings     String
+  coverImage  String?  @map("cover_image")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-
-  rooms Room[]
+  rooms       Room[]
 
   @@map("scripts")
 }
 
 model Room {
-  id        String    @id @default(cuid())
-  scriptId  String    @map("script_id")
-  status    String    @default("waiting")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  endedAt   DateTime? @map("ended_at")
-
-  script   Script       @relation(fields: [scriptId], references: [id])
-  members  RoomMember[]
-  messages ChatMessage[]
+  id        String        @id @default(cuid())
+  scriptId  String        @map("script_id")
+  status    String        @default("waiting")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  endedAt   DateTime?     @map("ended_at")
+  messages  ChatMessage[]
+  members   RoomMember[]
+  script    Script        @relation(fields: [scriptId], references: [id])
 
   @@map("rooms")
 }
@@ -70,9 +68,8 @@ model RoomMember {
   isDemo   Boolean   @default(false) @map("is_demo")
   joinedAt DateTime  @default(now()) @map("joined_at")
   leftAt   DateTime? @map("left_at")
-
-  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room     Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@unique([roomId, userId])
   @@map("room_members")
@@ -86,9 +83,8 @@ model ChatMessage {
   content   String
   type      String   @default("text")
   createdAt DateTime @default(now()) @map("created_at")
-
-  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@map("chat_messages")
 }
@@ -100,8 +96,7 @@ model Note {
   scriptId  String?  @map("script_id")
   roomId    String?  @map("room_id")
   createdAt DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notes")
 }

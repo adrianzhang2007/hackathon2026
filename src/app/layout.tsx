@@ -17,7 +17,7 @@ const notoSans = Noto_Sans_SC({
 });
 
 export const metadata: Metadata = {
-  title: "知乎热榜剧本杀 - AI分身演绎真实事件",
+  title: "知乎热榜零号剧场 - AI分身演绎真实事件",
   description: "从知乎热榜获取真实事件，转化为可演绎的剧本杀，让AI分身扮演角色，在多AI实时互动中演绎剧情。",
 };
 

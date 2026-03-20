@@ -23,11 +23,11 @@ vercel --prod
 在 Vercel Dashboard 添加以下环境变量：
 
 ```
-SECONDME_CLIENT_ID=2c1be8e5-2f64-45b6-ab22-691e15321474
-SECONDME_CLIENT_SECRET=30434b5d085cb362146b635f58648718924c9e9d9a7295e95f7d1e4d40895a79
+SECONDME_CLIENT_ID=your_secondme_client_id
+SECONDME_CLIENT_SECRET=your_secondme_client_secret
 SECONDME_REDIRECT_URI=https://your-app.vercel.app/api/auth/callback
 DATABASE_URL=file:./dev.db
-KIMI_API_KEY=sk-kimi-cASHa6tbmkk6p9DFEUIiaLuiINOAVZmrPKh7pd6zJaWiaJ9EH8GLFOiLc9la6Qiy
+KIMI_API_KEY=your_kimi_api_key
 ```
 
 ### 5. 更新 SecondMe 回调地址

@@ -97,38 +97,42 @@ function CreateRoomForm() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="font-serif text-3xl font-bold text-[#2c2824] mb-8">创建房间</h1>
+      <h1 className="font-serif text-3xl font-bold text-[#2c2824] mb-8">
+        {scriptId ? '确认剧本' : '创建房间'}
+      </h1>
 
-      {/* 剧本选择 */}
-      <div className="bg-white rounded-xl p-6 border border-[#e8e4df] mb-6">
-        <h2 className="font-serif text-lg font-semibold text-[#2c2824] mb-4">选择剧本</h2>
+      {/* 剧本选择 - 仅在无 scriptId 时显示 */}
+      {!scriptId && (
+        <div className="bg-white rounded-xl p-6 border border-[#e8e4df] mb-6">
+          <h2 className="font-serif text-lg font-semibold text-[#2c2824] mb-4">选择剧本</h2>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          {scripts.map((script) => (
-            <div
-              key={script.id}
-              onClick={() => setSelectedScript(script)}
-              className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                selectedScript?.id === script.id
-                  ? 'border-[#2c2824] bg-[#faf8f5]'
-                  : 'border-[#e8e4df] hover:border-[#2c2824]'
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-[#2c2824]">{script.title}</h3>
-                {selectedScript?.id === script.id && (
-                  <span className="text-green-600">✓</span>
-                )}
+          <div className="grid md:grid-cols-2 gap-4">
+            {scripts.map((script) => (
+              <div
+                key={script.id}
+                onClick={() => setSelectedScript(script)}
+                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                  selectedScript?.id === script.id
+                    ? 'border-[#2c2824] bg-[#faf8f5]'
+                    : 'border-[#e8e4df] hover:border-[#2c2824]'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-semibold text-[#2c2824]">{script.title}</h3>
+                  {selectedScript?.id === script.id && (
+                    <span className="text-green-600">✓</span>
+                  )}
+                </div>
+                <p className="text-sm text-[#5c5650] mb-2 line-clamp-2">{script.description}</p>
+                <div className="flex items-center text-xs text-[#8b8379]">
+                  <span className="mr-3">👥 {script.roles.length} 个角色</span>
+                  <span>⏱️ {script.duration} 分钟</span>
+                </div>
               </div>
-              <p className="text-sm text-[#5c5650] mb-2 line-clamp-2">{script.description}</p>
-              <div className="flex items-center text-xs text-[#8b8379]">
-                <span className="mr-3">👥 {script.roles.length} 个角色</span>
-                <span>⏱️ {script.duration} 分钟</span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 剧本详情 */}
       {selectedScript && (
@@ -151,8 +155,8 @@ function CreateRoomForm() {
                 {(typeof selectedScript.roles === 'string'
                   ? JSON.parse(selectedScript.roles)
                   : selectedScript.roles
-                ).map((role: { id: string; name: string; occupation: string }) => (
-                  <span key={role.id} className="px-3 py-1 bg-[#f0ece6] text-[#2c2824] rounded-full text-sm">
+                ).map((role: any, index: number) => (
+                  <span key={role.id || `role-${index}`} className="px-3 py-1 bg-[#f0ece6] text-[#2c2824] rounded-full text-sm">
                     {role.name} · {role.occupation}
                   </span>
                 ))}

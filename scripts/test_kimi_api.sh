@@ -4,8 +4,13 @@
 # OpenAI Compatible 格式
 
 API_ENDPOINT="https://api.kimi.com/coding/v1/chat/completions"
-API_KEY="sk-kimi-cASHa6tbmkk6p9DFEUIiaLuiINOAVZmrPKh7pd6zJaWiaJ9EH8GLFOiLc9la6Qiy"
+API_KEY="${KIMI_API_KEY:-}"
 MODEL="kimi-for-coding"
+
+if [ -z "$API_KEY" ]; then
+  echo "KIMI_API_KEY 未设置，请先导出环境变量后再运行。"
+  exit 1
+fi
 
 # 请求体
 curl -sS -N "$API_ENDPOINT" \

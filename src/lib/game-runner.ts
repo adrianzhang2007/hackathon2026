@@ -48,12 +48,6 @@ export async function startRoomGame(roomId: string) {
     throw new Error('房间需要至少一名真实玩家才能启动');
   }
 
-  // 检查真实玩家是否都选择了角色
-  const unselectedRealPlayers = realPlayers.filter((m) => !m.roleId);
-  if (unselectedRealPlayers.length > 0) {
-    throw new Error('所有真实玩家都需要选择一个角色才能开始游戏');
-  }
-
   runningRooms.add(roomId);
   console.log(`Starting game loop for room ${roomId}`);
 
@@ -80,7 +74,7 @@ export async function startRoomGame(roomId: string) {
   gameLoop(roomId);
 }
 
-// 游戏配置 - 严格控制20轮结束
+// 游戏配置 - 5-10分钟游戏时间（20轮，每轮15-30秒含AI请求）
 const MAX_ROUNDS = 20; // 固定20轮结束
 const TARGET_ROUNDS = 20; // 目标轮数
 
@@ -117,7 +111,7 @@ async function gameLoop(roomId: string) {
         description: room.script!.description || undefined,
         sourceEvent: room.script!.sourceEvent || undefined,
         background: room.script!.background ? JSON.parse(room.script!.background) : undefined,
-        roles: JSON.parse(room.script!.roles),
+        roles: JSON.parse(room.script!.roles).map((r: any, index: number) => ({ ...r, id: r.id || `role_${index + 1}` })),
         scenes: JSON.parse(room.script!.scenes),
         endings: JSON.parse(room.script!.endings),
       } as Script;
@@ -171,8 +165,8 @@ async function gameLoop(roomId: string) {
         console.log(`[Room ${roomId}] ${nextSpeaker.roleName}: ${message.slice(0, 50)}...`);
       }
 
-      // 等待一段时间再下一位发言
-      await sleep(10000 + Math.random() * 5000); // 10-15秒随机间隔
+      // 等待一段时间再下一位发言（含AI请求时间，总间隔约15-30秒）
+      await sleep(15000 + Math.random() * 10000); // 15-25秒随机间隔
 
     } catch (error) {
       console.error(`Error in game loop for room ${roomId}:`, error);
@@ -373,10 +367,10 @@ function getCurrentScene(script: Script, messages: any[]): any {
   const scenes = Array.isArray(script.scenes) ? script.scenes : [];
   if (scenes.length === 0) return null;
 
-  // 根据消息数量判断当前场景（简单逻辑：每10条消息切换一个场景）
+  // 根据消息数量判断当前场景（简单逻辑：每4条消息切换一个场景，5场景 x 4 = 20轮）
   const nonSystemMessages = messages.filter(m => m.userId !== 'system');
   const sceneIndex = Math.min(
-    Math.floor(nonSystemMessages.length / 10),
+    Math.floor(nonSystemMessages.length / 4),
     scenes.length - 1
   );
 

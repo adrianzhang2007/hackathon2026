@@ -41,8 +41,12 @@ export async function POST(
       return NextResponse.json({ code: 400, message: '该角色已被选择' }, { status: 400 });
     }
 
-    // 获取剧本角色信息
-    const scriptRoles = JSON.parse(room.script!.roles);
+    // 获取剧本角色信息，并为没有 id 的角色生成 id
+    const scriptRoles = JSON.parse(room.script!.roles).map((r: any, index: number) => ({
+      ...r,
+      id: r.id || `role_${index + 1}`
+    }));
+    console.log('[API SelectRole] Looking for roleId:', roleId, 'Available roles:', scriptRoles.map((r: any) => ({ id: r.id, name: r.name })));
     const selectedRole = scriptRoles.find((r: any) => r.id === roleId);
     if (!selectedRole) {
       return NextResponse.json({ code: 400, message: '角色不存在' }, { status: 400 });

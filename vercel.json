@@ -15,6 +15,6 @@
     "SECONDME_USER_PROFILE_ENDPOINT": "https://api.mindverse.com/gate/lab/api/secondme/user/info",
     "KIMI_API_ENDPOINT": "https://api.kimi.com/coding/v1/messages",
     "KIMI_API_KEY": "@kimi_api_key",
-    "NEXT_PUBLIC_APP_NAME": "人间观察站"
+    "NEXT_PUBLIC_APP_NAME": "知乎热榜零号剧场"
   }
 }

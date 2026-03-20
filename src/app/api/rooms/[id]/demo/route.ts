@@ -55,7 +55,7 @@ export async function POST(
       description: room.script.description || undefined,
       sourceEvent: room.script.sourceEvent || undefined,
       background: room.script.background ? JSON.parse(room.script.background) : undefined,
-      roles: JSON.parse(room.script.roles),
+      roles: JSON.parse(room.script.roles).map((r: any, index: number) => ({ ...r, id: r.id || `role_${index + 1}` })),
       scenes: JSON.parse(room.script.scenes),
       endings: JSON.parse(room.script.endings),
     } as Script;

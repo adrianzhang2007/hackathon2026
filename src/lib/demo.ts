@@ -29,7 +29,8 @@ export async function createDemoBotUser(roleName: string, index: number) {
 
 // 为房间填充 DEMO 机器人
 export async function fillDemoBots(roomId: string, script: Script) {
-  const roles: Role[] = Array.isArray(script.roles) ? script.roles : JSON.parse(script.roles as string);
+  const roles: Role[] = (Array.isArray(script.roles) ? script.roles : JSON.parse(script.roles as string))
+    .map((r: any, index: number) => ({ ...r, id: r.id || `role_${index + 1}` }));
 
   // 获取当前房间成员
   const existingMembers = await prisma.roomMember.findMany({

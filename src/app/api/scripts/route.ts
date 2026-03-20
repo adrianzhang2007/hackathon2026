@@ -27,7 +27,7 @@ export async function GET() {
       }) => ({
         ...script,
         background: script.background ? JSON.parse(script.background) : null,
-        roles: JSON.parse(script.roles),
+        roles: JSON.parse(script.roles).map((r: any, index: number) => ({ ...r, id: r.id || `role_${index + 1}` })),
         scenes: JSON.parse(script.scenes),
         endings: JSON.parse(script.endings),
       })),

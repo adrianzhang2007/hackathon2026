@@ -28,7 +28,7 @@ model Script {
   id          String   @id @default(cuid())
   title       String
   description String?
-  sourceEvent String?  @map("source_event")
+  sourceEvent String?  @unique @map("source_event")
   scriptType  String   @map("script_type")
   difficulty  Int      @default(1)
   duration    Int      @default(30)

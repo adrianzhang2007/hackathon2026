@@ -2,10 +2,15 @@ import fs from 'fs';
 import path from 'path';
 
 const API_URL = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
-const API_KEY = '7203f049-02ad-4ee1-a73b-34409f050d47';
+const API_KEY = process.env.ARK_API_KEY || '';
 
 export async function generateImage(prompt: string): Promise<string | null> {
   try {
+    if (!API_KEY) {
+      console.error('[Image] Missing ARK_API_KEY');
+      return null;
+    }
+
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: {

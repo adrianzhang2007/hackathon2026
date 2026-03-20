@@ -76,6 +76,7 @@ export interface Room {
   members: RoomMember[];
   createdAt: string;
   updatedAt: string;
+  currentUserId?: string;
 }
 
 export interface RoomMember {

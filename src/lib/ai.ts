@@ -214,7 +214,7 @@ export async function generateScript(title: string, body: string, answers: any[]
 热门回答：${answers.slice(0, 3).map((a: any) => a.body?.slice(0, 200)).join('\n\n')}
 
 要求：
-1. 5个角色，每个有目标和秘密
+1. 5个角色，每个有唯一id、目标和秘密
 2. 5个场景，逐步推进剧情
 3. 4个不同结局
 4. 保持真实事件的核心冲突
@@ -227,9 +227,9 @@ export async function generateScript(title: string, body: string, answers: any[]
   "difficulty": 3,
   "duration": 30,
   "background": {"time": "时间", "location": "地点", "socialContext": "背景"},
-  "roles": [{"name": "角色名", "age": 30, "occupation": "职业", "personality": ["性格1"], "coreGoal": "目标", "secret": "秘密", "initialState": "初始状态"}],
-  "scenes": [{"name": "场景名", "location": "地点", "description": "描述", "mood": "氛围", "keyEvents": ["事件1"]}],
-  "endings": [{"name": "结局名", "description": "描述", "condition": "触发条件", "impact": "影响"}]
+  "roles": [{"id": "role_1", "name": "角色名", "age": 30, "occupation": "职业", "personality": ["性格1"], "coreGoal": "目标", "secret": "秘密", "initialState": "初始状态"}],
+  "scenes": [{"id": "scene_1", "name": "场景名", "location": "地点", "description": "描述", "mood": "氛围", "keyEvents": ["事件1"]}],
+  "endings": [{"id": "ending_1", "name": "结局名", "description": "描述", "condition": "触发条件", "impact": "影响"}]
 }`;
 
   const result = await callKimiAPI('你是剧本创作专家', [{ role: 'user', content: prompt }], 4000);
@@ -237,7 +237,33 @@ export async function generateScript(title: string, body: string, answers: any[]
 
   try {
     const cleaned = result.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    return JSON.parse(cleaned);
+    const script = JSON.parse(cleaned);
+    
+    // 兜底：为没有 id 的角色自动生成 id
+    if (script.roles && Array.isArray(script.roles)) {
+      script.roles = script.roles.map((role: any, index: number) => ({
+        ...role,
+        id: role.id || `role_${index + 1}`
+      }));
+    }
+    
+    // 兜底：为没有 id 的场景自动生成 id
+    if (script.scenes && Array.isArray(script.scenes)) {
+      script.scenes = script.scenes.map((scene: any, index: number) => ({
+        ...scene,
+        id: scene.id || `scene_${index + 1}`
+      }));
+    }
+    
+    // 兜底：为没有 id 的结局自动生成 id
+    if (script.endings && Array.isArray(script.endings)) {
+      script.endings = script.endings.map((ending: any, index: number) => ({
+        ...ending,
+        id: ending.id || `ending_${index + 1}`
+      }));
+    }
+    
+    return script;
   } catch {
     return null;
   }

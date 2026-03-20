@@ -29,6 +29,7 @@ export default function RoomPage() {
   const [loading, setLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [modal, setModal] = useState({ show: false, title: '', message: '', icon: '🎭' });
+  const [selectingRole, setSelectingRole] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -86,13 +87,26 @@ export default function RoomPage() {
   };
 
   const handleSelectRole = async (roleId: string) => {
-    // 检查角色是否已被选择
-    const isTaken = room?.members?.some((m: any) => m.roleId === roleId && !m.isDemo);
-    if (isTaken) {
+    console.log('[RoleSelect] Clicked roleId:', roleId, 'currentUserId:', room?.currentUserId);
+    
+    // 检查角色是否已被其他玩家选择
+    const isTakenByOther = room?.members?.some((m: any) => m.roleId === roleId && m.userId !== room?.currentUserId);
+    console.log('[RoleSelect] isTakenByOther:', isTakenByOther, 'members:', room?.members);
+    
+    if (isTakenByOther) {
       setModal({ show: true, title: '角色已被选择', message: '该角色已被其他玩家选择', icon: '⚠️' });
       return;
     }
 
+    // 防止重复点击
+    if (selectingRole) {
+      console.log('[RoleSelect] Already selecting, ignoring click');
+      return;
+    }
+
+    setSelectingRole(roleId);
+    console.log('[RoleSelect] Sending API request for roleId:', roleId);
+    
     try {
       const res = await fetch(`/api/rooms/${roomId}/role`, {
         method: 'POST',
@@ -100,15 +114,19 @@ export default function RoomPage() {
         body: JSON.stringify({ roleId }),
       });
       const data = await res.json();
+      console.log('[RoleSelect] API response:', data);
+      
       if (data.code === 0) {
-        setSelectedRole(roleId);
-        fetchRoom();
+        // 先更新本地状态，然后刷新房间数据
+        await fetchRoom();
       } else {
         setModal({ show: true, title: '选择失败', message: data.message || '选择角色失败', icon: '❌' });
       }
     } catch (error) {
-      console.error('Error selecting role:', error);
+      console.error('[RoleSelect] Error:', error);
       setModal({ show: true, title: '选择失败', message: '选择角色失败', icon: '❌' });
+    } finally {
+      setSelectingRole(null);
     }
   };
 
@@ -141,13 +159,6 @@ export default function RoomPage() {
     const realPlayers = room?.members?.filter((m: any) => !m.isDemo);
     if (!realPlayers || realPlayers.length === 0) {
       setModal({ show: true, title: '无法启动', message: '房间需要至少一名真实玩家才能启动', icon: '⚠️' });
-      return;
-    }
-
-    // 检查真实玩家是否都选择了角色
-    const unselectedRealPlayers = realPlayers.filter((m: any) => !m.roleId);
-    if (unselectedRealPlayers.length > 0) {
-      setModal({ show: true, title: '无法启动', message: '所有真实玩家都需要选择一个角色才能开始游戏', icon: '⚠️' });
       return;
     }
 
@@ -184,7 +195,7 @@ export default function RoomPage() {
   };
 
   const getMyRole = () => {
-    return room?.members?.find((m: any) => !m.isDemo)?.roleId;
+    return room?.members?.find((m: any) => m.userId === room?.currentUserId)?.roleId;
   };
 
   if (loading) {
@@ -213,12 +224,35 @@ export default function RoomPage() {
     );
   }
 
-  const isMember = room.members?.some((m: any) => !m.isDemo);
-  const myRoleId = getMyRole();
+  const isMember = room.members?.some((m: any) => m.userId === room.currentUserId);
+  // 优先使用 selectedRole（乐观更新），否则从 room 数据计算
+  const myRoleId = selectedRole ?? getMyRole();
   const myMember = room.members?.find((m: any) => !m.isDemo);
   const hasSelectedRole = !!myRoleId;
   const script = room.script;
-  const roles: Role[] = script?.roles ? (Array.isArray(script.roles) ? script.roles : JSON.parse(script.roles as string)) : [];
+  
+  // 解析 roles 并确保每个 role 都有 id
+  let parsedRoles: Role[] = [];
+  if (script?.roles) {
+    try {
+      parsedRoles = Array.isArray(script.roles) ? script.roles : JSON.parse(script.roles as string);
+      // 为没有 id 的角色自动生成 id
+      parsedRoles = parsedRoles.map((role: any, index: number) => ({
+        ...role,
+        id: role.id || `role_${index + 1}`
+      }));
+    } catch (e) {
+      console.error('[RolesData] Parse error:', e);
+      parsedRoles = [];
+    }
+  }
+  const roles = parsedRoles;
+  
+  // 调试日志：检查 roles 数据
+  console.log('[RolesData] roles count:', roles.length, 'roles:', roles.map(r => ({ id: r.id, name: r.name })));
+  console.log('[RolesData] myRoleId:', myRoleId, 'currentUserId:', room.currentUserId);
+  console.log('[RolesData] members:', room.members?.map((m: any) => ({ userId: m.userId, roleId: m.roleId })));
+  
   const totalCount = room.members?.length || 0;
   const realPlayerCount = room.members?.filter((m: any) => !m.isDemo).length || 0;
 
@@ -309,20 +343,31 @@ export default function RoomPage() {
         {isMember && room.status === 'waiting' && (
           <div className="bg-white rounded-xl p-6 border border-[#e8e4df] mb-6">
             <h3 className="font-serif text-lg font-semibold text-[#2c2824] mb-4">选择你的角色</h3>
+            <div className="text-xs text-gray-500 mb-2">调试信息 - myRoleId: {myRoleId || 'null'}, selectingRole: {selectingRole || 'null'}</div>
             <div className="grid md:grid-cols-2 gap-4">
-              {roles.map((role) => {
+              {roles.map((role, index) => {
+                console.log(`[RoleRender] index=${index}, role.id=${role.id}, role.name=${role.name}`);
                 const isTaken = room.members?.some((m: any) => m.roleId === role.id);
                 const isMine = myRoleId === role.id;
+                const isSelecting = selectingRole === role.id;
+                console.log(`[RoleRender] role.id=${role.id}, isTaken=${isTaken}, isMine=${isMine}, isSelecting=${isSelecting}`);
                 return (
                   <div
-                    key={role.id}
-                    onClick={() => !isTaken && handleSelectRole(role.id)}
+                    key={role.id || `role-${index}`}
+                    onClick={() => {
+                      console.log(`[RoleClick] Clicked on role.id=${role.id}`);
+                      if (!isTaken && !selectingRole) {
+                        handleSelectRole(role.id);
+                      }
+                    }}
                     className={`p-4 border rounded-lg transition-all ${
                       isTaken
                         ? isMine
-                          ? 'bg-green-50 border-green-400 cursor-pointer'
+                          ? 'bg-green-50 border-green-400'
                           : 'bg-gray-100 border-gray-200 opacity-60'
-                        : 'border-[#e8e4df] hover:border-[#2c2824] cursor-pointer hover:shadow-md'
+                        : isSelecting
+                          ? 'bg-blue-50 border-blue-400 cursor-wait'
+                          : 'border-[#e8e4df] hover:border-[#2c2824] cursor-pointer hover:shadow-md'
                     }`}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -330,6 +375,11 @@ export default function RoomPage() {
                       {isTaken && (
                         <span className={`text-xs px-2 py-1 rounded ${isMine ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
                           {isMine ? '✓ 我的角色' : '已被选择'}
+                        </span>
+                      )}
+                      {isSelecting && (
+                        <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">
+                          选择中...
                         </span>
                       )}
                     </div>
@@ -374,7 +424,7 @@ export default function RoomPage() {
                     roundCounter++;
                   }
                   return (
-                    <div key={msg.id} className={`flex ${msg.type === 'system' ? 'justify-center' : 'justify-start'}`}>
+                    <div key={msg.id || `msg-${index}`} className={`flex ${msg.type === 'system' ? 'justify-center' : 'justify-start'}`}>
                       {msg.type === 'system' ? (
                         <div className="bg-[#f0ece6] px-4 py-2 rounded-full text-sm text-[#5c5650]">{msg.content}</div>
                       ) : (

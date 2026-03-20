@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(
   request: Request,
@@ -7,6 +8,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const currentUser = await getCurrentUser();
+    
     const room = await prisma.room.findUnique({
       where: { id },
       include: {
@@ -45,10 +48,11 @@ export async function GET(
       code: 0,
       data: {
         ...room,
+        currentUserId: currentUser?.id || null,
         script: room.script ? {
           ...room.script,
           background: room.script.background ? JSON.parse(room.script.background) : null,
-          roles: JSON.parse(room.script.roles),
+          roles: JSON.parse(room.script.roles).map((r: any, index: number) => ({ ...r, id: r.id || `role_${index + 1}` })),
           scenes: JSON.parse(room.script.scenes),
           endings: JSON.parse(room.script.endings),
         } : null,

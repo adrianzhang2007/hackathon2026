@@ -61,7 +61,7 @@ export default function ScriptsPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {scripts.map((script) => (
-              <div key={script.id} className="bg-white rounded-xl overflow-hidden border border-[#e8e4df] hover:shadow-lg transition-shadow">
+              <div key={script.id} id={`script-${script.id}`} className="bg-white rounded-xl overflow-hidden border border-[#e8e4df] hover:shadow-lg transition-shadow scroll-mt-24">
                 {script.coverImage && (
                   <img src={script.coverImage} alt={script.title} className="w-full h-48 object-cover" />
                 )}
@@ -88,7 +88,16 @@ export default function ScriptsPage() {
 
                 {script.sourceEvent && (
                   <p className="text-xs text-[#8b8379] mb-4 italic">
-                    来源：{script.sourceEvent}
+                    来源：
+                    <a 
+                      href={`https://www.zhihu.com/question/${script.sourceEvent}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      知乎热榜 ↗
+                    </a>
                   </p>
                 )}
 

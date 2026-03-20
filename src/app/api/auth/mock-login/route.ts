@@ -5,16 +5,18 @@ import { prisma } from '@/lib/prisma';
 export async function GET() {
   // 创建或获取 mock 用户
   let user = await prisma.user.findFirst({
-    where: { email: 'mock@test.com' }
+    where: { secondmeUserId: 'mock_user_123' }
   });
 
   if (!user) {
     user = await prisma.user.create({
       data: {
-        secondmeId: 'mock_user_123',
+        secondmeUserId: 'mock_user_123',
         name: '测试用户',
-        email: 'mock@test.com',
         avatar: '',
+        accessToken: 'mock_token',
+        refreshToken: 'mock_refresh',
+        tokenExpiresAt: new Date(Date.now() + 86400000),
       }
     });
   }

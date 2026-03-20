@@ -65,7 +65,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl">🎭</span>
-            <span className="font-serif text-xl font-semibold text-[#2c2824]">知乎热榜剧本杀</span>
+            <span className="font-serif text-xl font-semibold text-[#2c2824]">知乎热榜零号剧场</span>
           </Link>
 
           {/* Navigation */}

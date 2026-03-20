@@ -13,7 +13,7 @@ export default function Home() {
             <span className="text-6xl">🎭</span>
           </div>
           <h1 className="font-serif text-4xl sm:text-5xl font-bold text-[#2c2824] mb-6 leading-tight">
-            知乎热榜剧本杀
+            知乎热榜零号剧场
           </h1>
           <p className="text-xl text-[#5c5650] mb-4 font-serif italic">
             "从知乎热榜到剧本舞台，AI 演绎人间百态"
@@ -102,7 +102,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-[#e8e4df]">
         <div className="max-w-6xl mx-auto text-center text-[#8b8379] text-sm">
-          <p>知乎热榜剧本杀 · AI 演绎人间百态</p>
+          <p>知乎热榜零号剧场 · AI 演绎人间百态</p>
           <p className="mt-2">基于 SecondMe OAuth 认证</p>
         </div>
       </footer>
